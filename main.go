@@ -39,6 +39,17 @@ type UserLocation struct {
 	Splitted     bool    `json:"splitted"`
 }
 
+type Locationlatitude struct {
+	LocationID string  `json:"location_id"`
+	Latitude   float64 `json:"latitude"`
+	Departure  bool    `json:"departure"`
+}
+
+type BluetoothEncounter struct {
+	UserID          string `json:"user_id"`
+	EncounterUserId string `json:"encounter_user_id"`
+}
+
 func defaultRoute(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "default route")
 }
@@ -120,6 +131,67 @@ func insertUserLocationRecord(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func insertBluethoothEncounter(w http.ResponseWriter, r *http.Request) {
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+	bluetoothEncounter := BluetoothEncounter{}
+
+	erp := json.NewDecoder(r.Body).Decode(&bluetoothEncounter)
+	fmt.Println(erp)
+
+	if erp != nil {
+		log.Fatalf("Error parsing request body1")
+	}
+
+	pl, errpl := json.Marshal(bluetoothEncounter)
+
+	if errpl != nil {
+		log.Fatalf("Error parsing request body2")
+	}
+
+	postURL := os.Getenv("BULETOOTH_ENCOUNTER_URI") + "/" + os.Getenv("BULETOOTH_ENCOUNTER_SERVICE")
+	fmt.Println(postURL)
+	response, err := http.Post(postURL, "application/json", bytes.NewBuffer(pl))
+	if err != nil {
+		fmt.Printf("The HTTP request failed with error %s\n", err)
+	} else {
+		json.NewEncoder(w).Encode(response.Body)
+	}
+}
+
+func insertLocationLatitude(w http.ResponseWriter, r *http.Request) {
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+	locationLat := Locationlatitude{}
+
+	erp := json.NewDecoder(r.Body).Decode(&locationLat)
+
+	if erp != nil {
+		log.Fatalf("Error parsing request body1")
+	}
+
+	pl, errpl := json.Marshal(locationLat)
+
+	if errpl != nil {
+		log.Fatalf("Error parsing request body2")
+	}
+
+	postURL := os.Getenv("LOCATION_LAT_URI") + "/" + os.Getenv("LOCATION_LAT_SERVICE")
+	fmt.Println(postURL)
+	response, err := http.Post(postURL, "application/json", bytes.NewBuffer(pl))
+	if err != nil {
+		fmt.Printf("The HTTP request failed with error %s\n", err)
+	} else {
+		json.NewEncoder(w).Encode(response.Body)
+	}
+}
+
 // jwt authenticaton
 
 var mySigningKey = []byte(os.Getenv("SIGNING_KEY"))
@@ -187,6 +259,9 @@ func handleRequests() {
 	//http.Handle(gatewayPrefix+"/users", isAuthorized(allUsers))
 	gatewayRouter.HandleFunc(gatewayPrefix+"/users", insertUserRecord).Methods(http.MethodPost)
 	gatewayRouter.HandleFunc(gatewayPrefix+"/user_locations", insertUserLocationRecord).Methods(http.MethodPost)
+	gatewayRouter.HandleFunc(gatewayPrefix+"/location_latitude", insertLocationLatitude).Methods(http.MethodPost)
+	gatewayRouter.HandleFunc(gatewayPrefix+"/bluetooth_encounter", insertBluethoothEncounter).Methods(http.MethodPost)
+
 	gatewayRouter.HandleFunc(gatewayPrefix+"/token", getToken)
 	log.Fatal(http.ListenAndServe(":8000", gatewayRouter))
 }
