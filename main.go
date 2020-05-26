@@ -130,6 +130,24 @@ func insertUserLocationRecord(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response.Body)
 	}
 }
+func allUserLocationRecords(w http.ResponseWriter, r *http.Request) {
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+
+	userLocation := []UserLocation{}
+	getURL := os.Getenv("USER_LOCATION_URI") + "/" + os.Getenv("USER_LOCATION_SERVICE")
+	response, err := http.Get(getURL)
+	if err != nil {
+		fmt.Printf("The HTTP request failed with error %s\n", err)
+	} else {
+		fmt.Printf("whats wrong? ")
+		json.NewDecoder(response.Body).Decode(&userLocation)
+		json.NewEncoder(w).Encode(userLocation)
+	}
+}
 
 func insertBluethoothEncounter(w http.ResponseWriter, r *http.Request) {
 	err := godotenv.Load(".env")
@@ -162,6 +180,25 @@ func insertBluethoothEncounter(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func allBluethoothEncounters(w http.ResponseWriter, r *http.Request) {
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+
+	bluetoothEncounter := []BluetoothEncounter{}
+	getURL := os.Getenv("BULETOOTH_ENCOUNTER_URI") + "/" + os.Getenv("BULETOOTH_ENCOUNTER_SERVICE")
+	response, err := http.Get(getURL)
+	if err != nil {
+		fmt.Printf("The HTTP request failed with error %s\n", err)
+	} else {
+		fmt.Printf("whats wrong? ")
+		json.NewDecoder(response.Body).Decode(&bluetoothEncounter)
+		json.NewEncoder(w).Encode(bluetoothEncounter)
+	}
+}
+
 func insertLocationLatitude(w http.ResponseWriter, r *http.Request) {
 	err := godotenv.Load(".env")
 
@@ -190,6 +227,26 @@ func insertLocationLatitude(w http.ResponseWriter, r *http.Request) {
 	} else {
 		json.NewEncoder(w).Encode(response.Body)
 	}
+}
+
+func allLocationLatitudes(w http.ResponseWriter, r *http.Request) {
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+
+	locationLatitude := []Locationlatitude{}
+	getURL := os.Getenv("LOCATION_LAT_URI") + "/" + os.Getenv("LOCATION_LAT_SERVICE")
+	response, err := http.Get(getURL)
+	if err != nil {
+		fmt.Printf("The HTTP request failed with error %s\n", err)
+	} else {
+		fmt.Printf("whats wrong? ")
+		json.NewDecoder(response.Body).Decode(&locationLatitude)
+		json.NewEncoder(w).Encode(locationLatitude)
+	}
+
 }
 
 // jwt authenticaton
@@ -258,6 +315,9 @@ func handleRequests() {
 	gatewayRouter.HandleFunc(gatewayPrefix+"/users", isAuthorized(allUsers)).Methods(http.MethodGet)
 	//http.Handle(gatewayPrefix+"/users", isAuthorized(allUsers))
 	gatewayRouter.HandleFunc(gatewayPrefix+"/users", insertUserRecord).Methods(http.MethodPost)
+	gatewayRouter.HandleFunc(gatewayPrefix+"/user_locations", allUserLocationRecords).Methods(http.MethodGet)
+	gatewayRouter.HandleFunc(gatewayPrefix+"/location_latitude", allLocationLatitudes).Methods(http.MethodGet)
+	gatewayRouter.HandleFunc(gatewayPrefix+"/bluetooth_encounter", allBluethoothEncounters).Methods(http.MethodGet)
 	gatewayRouter.HandleFunc(gatewayPrefix+"/user_locations", insertUserLocationRecord).Methods(http.MethodPost)
 	gatewayRouter.HandleFunc(gatewayPrefix+"/location_latitude", insertLocationLatitude).Methods(http.MethodPost)
 	gatewayRouter.HandleFunc(gatewayPrefix+"/bluetooth_encounter", insertBluethoothEncounter).Methods(http.MethodPost)
